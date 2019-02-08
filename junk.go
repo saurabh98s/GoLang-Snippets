@@ -6,7 +6,7 @@ import ( "fmt"
 func main() {
 	fmt.Println("BEGINNNG DB CONNECTION!")
 
-	db,err := sql.Open("mysql","root:*password*@tcp(127.0.0.1)/mydb") //define database and error
+	db,err := sql.Open("mysql","root:**@tcp(127.0.0.1)/mydb") //define database and error
 	if err!=nil{
 		panic(err.Error()) //panic prints the error.
 	}
