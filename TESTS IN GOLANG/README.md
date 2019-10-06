@@ -16,6 +16,7 @@ Within the same directory as your main.go and your main_test.go files, run the f
 to further visualise the code like in the screenshot, you can just write:<br>
     **go tool cover -html=coverage.out**
 <br>
+![Screenshot](https://github.com/saurabh98s/golang/blob/master/TESTS%20IN%20GOLANG/Screenshot%20(111).png)
 
 
 
