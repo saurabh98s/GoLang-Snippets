@@ -6,9 +6,13 @@
     <title>Document</title>
 </head>
 <body>
-    <h1>HEY HEY, WELCOME TO THE BAR {{.UserName}} </h1>
-    {{.First}}
-    {{.Last}}
+    <h1>HEY HEY, WELCOME TO THE BAR </h1>
+    {{if .First}}
+    USER NAME: {{.UserName}}<br>
+    PASSWORD: {{.Password}} <br>
+    FIRST {{.First}}<br>
+    LAST {{.Last}}<br>
+    {{end}}
     
 </body>
 </html>

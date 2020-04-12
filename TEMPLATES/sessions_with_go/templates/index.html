@@ -7,17 +7,20 @@
 </head>
 <body>
 
-    <form method="POST">
+    <!-- <form method="POST">
         <input type="email" name="username" placeholder="user name"><br>
         <input type="text" name="firstname" placeholder="first name"><br>
         <input type="text" name="lastname" placeholder="last name"><br>
         <input type="submit">
-    </form>
+    </form> -->
 
     {{if .First}}
     USER NAME: {{.UserName}}<br>
+    PASSWORD: {{.Password}} <br>
     FIRST {{.First}}<br>
     LAST {{.Last}}<br>
+    {{else}}
+    <h2><a href="/signup">signup</a></h2>
     {{end}}
     <br>
     <h2></h2>Go to <a href="/bar">the bar</a></h2>

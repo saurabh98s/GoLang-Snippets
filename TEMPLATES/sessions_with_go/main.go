@@ -5,11 +5,12 @@ import (
 	"net/http"
 
 	uuid "github.com/satori/go.uuid"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type user struct {
 	UserName string
-	Password string
+	Password []byte
 	First    string
 	Last     string
 }
@@ -22,8 +23,10 @@ func init() {
 	tpl = template.Must(template.ParseGlob("templates/*"))
 }
 func main() {
-	http.HandleFunc("/", foo)
+	http.HandleFunc("/", index)
 	http.HandleFunc("/bar", bar)
+	http.HandleFunc("/signup", signup)
+	http.Handle("/favicon.ico", http.NotFoundHandler())
 	http.ListenAndServe(":8080", nil)
 
 }
@@ -34,43 +37,43 @@ func index(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func foo(w http.ResponseWriter, r *http.Request) {
+// func foo(w http.ResponseWriter, r *http.Request) {
 
-	// get cookie
-	c, err := r.Cookie("session")
-	if err != nil {
-		sID, _ := uuid.NewV4()
-		c = &http.Cookie{
+// 	// get cookie
+// 	c, err := r.Cookie("session")
+// 	if err != nil {
+// 		sID, _ := uuid.NewV4()
+// 		c = &http.Cookie{
 
-			Name:  "session",
-			Value: sID.String(),
-		}
-		http.SetCookie(w, c) //writing cookie into the session
-	}
+// 			Name:  "session",
+// 			Value: sID.String(),
+// 		}
+// 		http.SetCookie(w, c) //writing cookie into the session
+// 	}
 
-	// if user exists,get user
+// 	// if user exists,get user
 
-	var u user
+// 	var u user
 
-	if un, ok := dbSessions[c.Value]; ok {
-		u = dbUser[un]
-	}
+// 	if un, ok := dbSessions[c.Value]; ok {
+// 		u = dbUser[un]
+// 	}
 
-	// form submission
-	if r.Method == http.MethodPost {
-		un := r.FormValue("username")
-		p := r.FormValue("password")
-		f := r.FormValue("firstname")
-		l := r.FormValue("lastname")
-		u = user{un, p, f, l}
-		dbSessions[c.Value] = un //assigning user a uuid
-		dbUser[un] = u
-	}
+// 	// form submission
+// 	if r.Method == http.MethodPost {
+// 		un := r.FormValue("username")
+// 		p := r.FormValue("password")
+// 		f := r.FormValue("firstname")
+// 		l := r.FormValue("lastname")
+// 		u = user{un, p, f, l}
+// 		dbSessions[c.Value] = un //assigning user a uuid
+// 		dbUser[un] = u
+// 	}
 
-	// if get method
-	tpl.ExecuteTemplate(w, "index.html", u)
+// 	// if get method
+// 	tpl.ExecuteTemplate(w, "index.html", u)
 
-}
+// }
 
 func bar(w http.ResponseWriter, r *http.Request) {
 	u := getUser(w, r)
@@ -113,7 +116,11 @@ func signup(w http.ResponseWriter, r *http.Request) {
 		dbSessions[c.Value] = un
 
 		// store user in dbUsers
-		u := user{un, p, f, l}
+		bs, err := bcrypt.GenerateFromPassword([]byte(p), bcrypt.MinCost)
+		if err != nil {
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		}
+		u := user{un, bs, f, l}
 		dbUser[un] = u
 
 		// redirect
