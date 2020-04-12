@@ -6,7 +6,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-func getUser(w http.ResponseWriter, r *http.Request) {
+func getUser(w http.ResponseWriter, r *http.Request) user {
 	// packages can be extended to different files in same folder
 
 	// get cookie
@@ -14,7 +14,7 @@ func getUser(w http.ResponseWriter, r *http.Request) {
 	c, err := r.Cookie("session")
 	if err != nil {
 		sID, _ := uuid.NewV4()
-		c := &http.Cookie{
+		c = &http.Cookie{
 
 			Name:  "session",
 			Value: sID.String(),

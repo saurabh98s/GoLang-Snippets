@@ -9,6 +9,7 @@ import (
 
 type user struct {
 	UserName string
+	Password string
 	First    string
 	Last     string
 }
@@ -24,6 +25,12 @@ func main() {
 	http.HandleFunc("/", foo)
 	http.HandleFunc("/bar", bar)
 	http.ListenAndServe(":8080", nil)
+
+}
+
+func index(w http.ResponseWriter, r *http.Request) {
+	u := getUser(w, r)
+	tpl.ExecuteTemplate(w, "index.html", u)
 
 }
 
@@ -52,9 +59,10 @@ func foo(w http.ResponseWriter, r *http.Request) {
 	// form submission
 	if r.Method == http.MethodPost {
 		un := r.FormValue("username")
+		p := r.FormValue("password")
 		f := r.FormValue("firstname")
 		l := r.FormValue("lastname")
-		u = user{un, f, l}
+		u = user{un, p, f, l}
 		dbSessions[c.Value] = un //assigning user a uuid
 		dbUser[un] = u
 	}
@@ -65,18 +73,54 @@ func foo(w http.ResponseWriter, r *http.Request) {
 }
 
 func bar(w http.ResponseWriter, r *http.Request) {
-	// get cookie
-	c, err := r.Cookie("session")
-	if err != nil {
+	u := getUser(w, r)
+	if !alreadyLoggedIn(r) {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
-	un, ok := dbSessions[c.Value]
-	// here !ok means there is no value stored
-	if !ok {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
-	}
-	u := dbUser[un]
 	tpl.ExecuteTemplate(w, "bar.html", u)
+
+}
+
+func signup(w http.ResponseWriter, r *http.Request) {
+	if alreadyLoggedIn(r) {
+
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+	// process form submission
+
+	if r.Method == http.MethodPost {
+		// get form values
+		un := r.FormValue("username")
+		p := r.FormValue("password")
+		f := r.FormValue("firstname")
+		l := r.FormValue("lastname")
+
+		// username taken?
+		if _, ok := dbUser[un]; ok {
+			http.Error(w, "Username already taken", http.StatusForbidden)
+			return
+
+		}
+		// create session
+		sID, _ := uuid.NewV4()
+		c := &http.Cookie{
+			Name:  "session",
+			Value: sID.String(),
+		}
+		http.SetCookie(w, c)
+		dbSessions[c.Value] = un
+
+		// store user in dbUsers
+		u := user{un, p, f, l}
+		dbUser[un] = u
+
+		// redirect
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	tpl.ExecuteTemplate(w, "signup.html", nil)
 
 }
