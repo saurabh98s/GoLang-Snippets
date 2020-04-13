@@ -3,6 +3,7 @@ package main
 import (
 	"html/template"
 	"net/http"
+	"time"
 
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -16,9 +17,17 @@ type user struct {
 	Role     string
 }
 
+type session struct {
+	un           string
+	lastActivity time.Time
+}
+
 var tpl *template.Template
-var dbUser = map[string]user{}       //userid, user
-var dbSessions = map[string]string{} //sessionid,user id
+var dbUser = map[string]user{}        //userid, user
+var dbSessions = map[string]session{} //sessionid,session
+var dbSessionsCleaned time.Time
+
+const sessionLength int = 30
 
 func init() {
 	tpl = template.Must(template.ParseGlob("templates/*"))
@@ -87,7 +96,7 @@ func signup(w http.ResponseWriter, r *http.Request) {
 			Value: sID.String(),
 		}
 		http.SetCookie(w, c)
-		dbSessions[c.Value] = un
+		dbSessions[c.Value] = session{un, time.Now()}
 
 		// store user in dbUsers
 		bs, err := bcrypt.GenerateFromPassword([]byte(p), bcrypt.MinCost)
@@ -135,11 +144,13 @@ func login(w http.ResponseWriter, r *http.Request) {
 			Name:  "session",
 			Value: sID.String(),
 		}
+		c.MaxAge = sessionLength
 		http.SetCookie(w, c)
-		dbSessions[c.Value] = un
+		dbSessions[c.Value] = session{un, time.Now()}
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
+	showSessions() //for demonstration only
 	tpl.ExecuteTemplate(w, "login.html", nil)
 
 }
@@ -157,5 +168,10 @@ func logout(w http.ResponseWriter, r *http.Request) {
 		MaxAge: -1,
 	}
 	http.SetCookie(w, c)
+
+	// clean up dbSessions
+	if time.Now().Sub(dbSessionsCleaned) > (time.Second * 30) {
+		go cleanSessions()
+	}
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
