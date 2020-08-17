@@ -1,6 +1,6 @@
 package main
 import "fmt"
-func main() { //automatically called.
+func slices() { //automatically called.
 	cards:= []string{"Ace of diamonds",newCard()}
 	cards =append(cards,"six of spades")
 	for i, card := range cards {

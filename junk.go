@@ -3,7 +3,7 @@ import ( "fmt"
 		 "database/sql"
 		 _"github.com/go-sql-driver/mysql"
 		 )
-func main() {
+func junk() {
 	fmt.Println("BEGINNNG DB CONNECTION!")
 
 	db,err := sql.Open("mysql","root:**@tcp(127.0.0.1)/mydb") //define database and error
