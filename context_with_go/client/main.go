@@ -14,6 +14,7 @@ func main() {
 	ctx := context.Background()
 	ctx,cancel :=context.WithTimeout(ctx,time.Second)
 	defer cancel()
+	ctx= context.WithValue(ctx,"foo","bar")
 	req,err:=http.NewRequest(http.MethodGet,"http://localhost:8080",nil)
 	if err != nil {
 		log.Fatal(err)
